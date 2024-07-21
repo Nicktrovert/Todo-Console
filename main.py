@@ -1,4 +1,6 @@
-import datetime, os, json
+import datetime
+import json
+import os
 
 HELP_MESSAGE = ("---------Help---------\n"
                 "(exit): saves and exits the application.\n"
@@ -10,7 +12,7 @@ HELP_MESSAGE = ("---------Help---------\n"
                 "(remove {title}): removes the element with the title {title}.\n"
                 "(get {index}): gives the element at position {index}.\n"
                 "(get {title}): gives the element with the title {title}.\n"
-                "(create {title}): create a new element.\n"
+                "(create {title} {task}): create a new element.\n"
                 "(edit {index}): edits the element at position {index}.\n"
                 "(edit {title}): edits the element with the title {title}.\n"
                 "----------------------\n")
@@ -26,7 +28,7 @@ def create_todo(title, task):
     Todo = {
         "Title": title,
         "Task": task,
-        "DateTime": str(datetime.datetime.utcnow()),
+        "DateTime": str(datetime.datetime.now().strftime("%d.%m.%Y-%H:%M:%S")),
         "Status": 0,
     }
     return Todo
@@ -72,13 +74,17 @@ if __name__ == '__main__':
     if load_todo() != "":
         todo_list = load_todo()
 
-    todo_list.get("Todos").append(create_todo("Test1", "Do something."))
-    todo_list.get("Todos").append(create_todo("Test2", "Do something else."))
-
     while 1:
         UserInput = input("Enter command: ")
         os.system(CLEAR_COMMAND)
-        match UserInput.lower():
+        SplitUserInput = list(filter(None, UserInput.split(" ")))
+        try:
+            command = SplitUserInput.pop(0)
+            args = SplitUserInput
+        except IndexError:
+            command = ""
+            args = []
+        match command.lower():
             case "exit_ws":
                 break
             case "exit":
@@ -92,7 +98,18 @@ if __name__ == '__main__':
             case "list":
                 for el in todo_list.get("Todos"):
                     print(f"#- {el.get('Title')} --- {el.get('DateTime')}\n"
-                          f"Task: {el.get('Task')}\n"
+                          f"Task: '{str(el.get('Task')).replace("\\n", '\n').replace("\\r", "\r")}'\n"
                           f"Status: {STATUS.get(el.get('Status'))}\n"
                           f"------------------------------")
                 print("\n")
+            case "create":
+                try:
+                    title = args[0]
+                except IndexError:
+                    title = input("Enter title: ")
+                if len(str(' '.join(args[1:]))) != 0:
+                    task = str(' '.join(args[1:]))
+                else:
+                    task = input("Enter task: ")
+
+                todo_list.get("Todos").append(create_todo(title, task))
