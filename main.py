@@ -15,8 +15,8 @@ HELP_MESSAGE = (
     "(get {index}): gives the element at position {index}.\n"
     "(get {title}): gives the element with the title {title}.\n"
     "(create {title} {task}): create a new element.\n"
-    "(edit {index}): edits the element at position {index}.\n"
-    "(edit {title}): edits the element with the title {title}.\n"
+    "(edit {index}): edits the element at position {index}. [todo]\n"
+    "(edit {title}): edits the element with the title {title}. [todo]\n"
     "----------------------\n"
 )
 
@@ -42,6 +42,30 @@ def create_todo(title, task):
         "DateTime": str(datetime.now().strftime("%d.%m.%Y-%H:%M:%S")),
         "Status": 0
     }
+
+
+def todo_index_by_title(Todo_list, title):
+    """
+
+    :param Todo_list:
+    :param title:
+    :return: Index of the found title or "-1" if not found
+    """
+    i = 0
+    for el in Todo_list.get("Todos"):
+        if el.get("Title") == title:
+            return i
+        i += 1
+    return -1
+
+def find_todo(todo_list, input):
+    # Use either title or index.
+    try:
+        element_index = int(input) - 1
+    except ValueError:
+        element_index = todo_index_by_title(todo_list, input)
+
+    return element_index
 
 
 def save_todo(JSON):
@@ -142,6 +166,13 @@ if __name__ == '__main__':
                 except IndexError:
                     title = input("Enter title: ")
 
+                while todo_index_by_title(todo_list, title.replace(" ", "_")) != -1:
+                    os.system(CLEAR_COMMAND)
+                    print("Title already exists. Please enter another title.")
+                    title = input("Enter title: ")
+
+                os.system(CLEAR_COMMAND)
+
                 # Make sure user enters a task
                 if len(str(' '.join(args[1:]))) != 0:
                     task = str(' '.join(args[1:]))
@@ -149,7 +180,38 @@ if __name__ == '__main__':
                     task = input("Enter task: ")
 
                 # Add the created element to the list
-                todo_list.get("Todos").append(create_todo(title, task))
+                todo_list.get("Todos").append(create_todo(title.replace(" ", "_"), task))
+
+            case "remove":
+                element_index = find_todo(todo_list, args[0])
+
+                # Check if the index is valid and notify user about circumstances.
+                try:
+                    # Avoid deletion of last element because Python treats '-1' as last position of list.
+                    if element_index == -1:
+                        print("Element does not exist.")
+                        continue
+                    todo_list.get("Todos").pop(element_index)
+                    print("Element successfully deleted.")
+                except IndexError:
+                    print("Element does not exist.")
+
+            case "get":
+                element_index = find_todo(todo_list, args[0])
+
+                # Check if the index is valid and notify user about circumstances.
+                try:
+                    # Avoid deletion of last element because Python treats '-1' as last position of list.
+                    if element_index == -1:
+                        print("Element does not exist.")
+                        continue
+                    element = todo_list.get("Todos")[element_index]
+                    print(f"#- {element.get('Title')} --- {element.get('DateTime')}\n"
+                          f"Task: '{str(element.get('Task')).replace("\\n", '\n').replace("\\r", "\r")}'\n"
+                          f"Status: {STATUS.get(element.get('Status'))}\n"
+                          f"------------------------------")
+                except IndexError:
+                    print("Element does not exist.")
 
             # Notify the user about the help command if they enter an invalid command
             case _:
