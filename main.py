@@ -201,7 +201,6 @@ if __name__ == '__main__':
 
                 # Check if the index is valid and notify user about circumstances.
                 try:
-                    # Avoid deletion of last element because Python treats '-1' as last position of list.
                     if element_index == -1:
                         print("Element does not exist.")
                         continue
@@ -210,6 +209,18 @@ if __name__ == '__main__':
                           f"Task: '{str(element.get('Task')).replace("\\n", '\n').replace("\\r", "\r")}'\n"
                           f"Status: {STATUS.get(element.get('Status'))}\n"
                           f"------------------------------")
+                except IndexError:
+                    print("Element does not exist.")
+
+            case "edit":
+                element_index = find_todo(todo_list, args[0])
+
+                # Check if the index is valid and notify user about circumstances.
+                try:
+                    if element_index == -1:
+                        print("Element does not exist.")
+                        continue
+                    # todo write the code for this stuff
                 except IndexError:
                     print("Element does not exist.")
 
